@@ -1,0 +1,50 @@
+#!/bin/bash
+
+# Script to extract data from the saved archive of ds008 raw data and
+# remove files that will not be used.  This script can be used as a
+# template for setting up any dataset for which there is a zipped,
+# tar archive.  In general, it is probably a good idea to create a
+# tar.gz file that includes _all_ the data acquired from your scan site
+# and store it, and the checksum, in a separate location from your
+# working data.  If it is your own study, you should have copies of
+# the original, archived data and checksums in at least two, and
+# preferably three places to guard against accidental or catastrophic
+# loss.  Computers, disks, and tapes all age and break; cloud systems
+# fail; people delete the wrong things.  Are you feeling lucky today?
+# Well?  Are you?
+
+# Set archive file name in a variable; this might be a for loop if
+# each subject is in their own archive.
+ds008_archive=/nfs/turbo/arcts-dads-nii-open/classdata/ds008_raw.tgz
+
+# Check that the working copy does not exist, and exit if it does
+if [ -d $HOME/Projects/ds008 ] ; then
+    echo "The ds008 folder exists. Please remove it and rerun. Exiting"
+    exit 1
+fi
+# It does not exist if we got to here, so
+# Change to the Projects directory, extract the archive, and go there.
+cd $HOME/Projects
+tar xzvf $ds008_archive
+cd ds008
+
+# There are some files that we do not need for our project.  To save
+# space and to keep folders cleaner and easier to read, we will delete
+# the files we do not want.
+
+# First, delete the QA folder for each subject
+echo
+echo "Removing the included QA files from the working data set. . ."
+echo
+rm -rf sub???/BOLD/task???_run???/QA
+
+# Second, delete the anatomical images we will not be using
+for subject in sub??? ; do
+    unwanted_anatomy_files=$(ls $subject/anatomy | grep -v highres001.nii.gz)
+    echo "Removing unwanted_anatomy_files for $subject"
+    for file in $unwanted_anatomy_files ; do
+        rm $subject/anatomy/$file
+    done
+done
+echo
+
